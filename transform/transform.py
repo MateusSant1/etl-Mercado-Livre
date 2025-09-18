@@ -3,7 +3,7 @@ import pandas as pd
 def parse_price(text):
     if not text:
         return None
-    # limpa “R$”, pontos de milhar e troca virgula por ponto decimal
+    # limpa “R$”, pontos de milhar e troca vírgula por ponto
     t = text.replace("R$", "").strip()
     t = t.replace(".", "").replace(",", ".")
     try:
@@ -13,7 +13,7 @@ def parse_price(text):
 
 def transformar_lista(raw_list):
     """
-    Recebe lista de produtos crus, retorna lista transformada com tipos adequados.
+    Converte a lista crua em DataFrame limpo.
     """
     dados = []
     for item in raw_list:
@@ -23,7 +23,6 @@ def transformar_lista(raw_list):
             "preco": preco_num,
             "link": item.get("link"),
             "imagem": item.get("imagem"),
-            "avaliacao": item.get("avaliacao"),
             "disponivel": True if item.get("disponibilidade") == "Em estoque" else False
         })
     return pd.DataFrame(dados)

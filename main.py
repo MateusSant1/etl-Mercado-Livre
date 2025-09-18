@@ -3,19 +3,21 @@ from transform.transform import transformar_lista
 from load.load import carregar_dados
 
 def main():
-    termo = "placa-de-video"
-    limite = 20
+    print("Iniciando ETL da KaBuM com Selenium...")
 
-    print("Extraindo dados da KaBuM …")
-    raw = extrair_dados(limite=limite)
+    # Extract
+    raw = extrair_dados(limite=20)
     print(f"{len(raw)} produtos extraídos.")
 
+    # Transform
     df = transformar_lista(raw)
-    print("Transformados (primeiros ~5):")
+    print("Transformados:")
     print(df.head())
 
+    # Load
     carregar_dados(df)
-    print("CSV gerado com sucesso.")
+    print("Arquivos CSV e Excel gerados com sucesso!")
 
 if __name__ == "__main__":
     main()
+

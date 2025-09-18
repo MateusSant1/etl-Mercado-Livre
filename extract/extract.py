@@ -1,23 +1,37 @@
-import requests
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
+import time
+
 
 def extrair_dados(limite: int = 20):
     """
-    Extrai vários itens da listagem da KaBuM, com avaliação se disponível.
-    Retorna lista de dicionários com dados crus.
+    Extrai dados de produtos da KaBuM usando Selenium (renderiza JS).
+    Retorna lista de dicionários crus.
     """
-    # Categoria exemplo: placas de vídeo
     url = "https://www.kabum.com.br/hardware/placa-de-video-vga"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-    }
 
-    resp = requests.get(url, headers=headers)
-    resp.raise_for_status()
+    # Configuração do navegador (headless = sem abrir janela)
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
 
-    soup = BeautifulSoup(resp.text, "html.parser")
+    driver = webdriver.Chrome(
+        service=Service(ChromeDriverManager().install()),
+        options=chrome_options
+    )
 
-    cards = soup.select("div.productCard")  # ou outro seletor de card de produto
+    driver.get(url)
+    time.sleep(5)  # espera JS carregar
+
+    soup = BeautifulSoup(driver.page_source, "html.parser")
+    driver.quit()
+
+    # Cards de produto
+    cards = soup.select("div.productCard")  
     resultados = []
 
     for card in cards[:limite]:
@@ -37,18 +51,6 @@ def extrair_dados(limite: int = 20):
         img_tag = card.find("img", src=True)
         imagem = img_tag["src"] if img_tag else None
 
-        # Avaliação (nota) — se houver
-        # Tenta alguns seletores possíveis
-        avaliacao = None
-        rating_tag = card.select_one("span.reviewCard")  # exemplo de seletor que pode existir
-        if rating_tag:
-            avaliacao = rating_tag.get_text(strip=True)
-        else:
-            # procurar por outro seletor de avaliação, se existir
-            alt_tag = card.select_one(".rating-stars")  # pode variar
-            if alt_tag:
-                avaliacao = alt_tag.get_text(strip=True)
-
         # Disponibilidade
         text_card = card.get_text(" ", strip=True).lower()
         if "indisponível" in text_card or "esgotado" in text_card:
@@ -61,7 +63,6 @@ def extrair_dados(limite: int = 20):
             "preco": preco,
             "link": link,
             "imagem": imagem,
-            "avaliacao": avaliacao,
             "disponibilidade": disponibilidade
         })
 
