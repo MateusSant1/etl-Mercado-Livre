@@ -7,28 +7,33 @@ def extrair_kabum(termo: str, limite: int = 20):
     Retorna lista de dicionários com dados crus.
     """
 
-    url = f"https://www.kabum.com.br/busca/{termo}"
-    headers = {"User-Agent": "Mozilla/5.0"}
+    url = f"https://www.kabum.com.br/hardware/placa-de-video-vga"
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"}
 
     resp = requests.get(url, headers=headers)
-    resp.raise_for_status()
+    if resp.status_code != 200:
+        raise exception (f"Erro ao acessar a página")
+    
 
     soup = BeautifulSoup(resp.text, "html.parser")
 
-    produtos_html = soup.find_all("div", class_="productCard", limit=limite)
+    
 
-    resultados = []
-    for produto in produtos_html:
-        nome = produto.find("span", class_="nameCard")
-        preco = produto.find("span", class_="priceCard")
-        avaliacao = produto.find("span", class_="reviewCard")
+    produtos = []
 
-        resultados.append({
-            "nome": nome.get_text(strip=True) if nome else "N/A",
-            "preco": preco.get_text(strip=True) if preco else "N/A",
-            "avaliacao": avaliacao.get_text(strip=True) if avaliacao else "Sem avaliação",
-            "categoria": termo,  # podemos assumir como a busca feita
-            "disponibilidade": "Indisponível" if "indisponível" in produto.get_text().lower() else "Em estoque"
+
+    cards = soup.select("div.productCard")
+    for card in cards:
+        nome = card.select_one("span.nameCard").get_text(strip=True) if card.select_one("span.nameCard") else None
+        preco = card.select_one("span.priceCard").get_text(strip=True) if card.select_one("span.priceCard") else None
+        link = "https://www.kabum.com.br" + card.a["href"] if card.a else None
+        imagem = card.img["src"] if card.img else None
+
+        produtos.append({
+            "nome": nome,
+            "preco": preco,
+            "link": link,
+            "imagem": imagem
         })
 
-    return resultados
+    return produtos

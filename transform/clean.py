@@ -1,16 +1,25 @@
 import pandas as pd
 
-def transformar_dados(raw_data: list[dict]) -> pd.DataFrame:
-    """
-    Transforma lista de dicionários em DataFrame pandas,
-    fazendo ajustes básicos.
-    """
+def transformar_dados(lista_dados)
+    
+    dados_transformados = []
 
-    df = pd.DataFrame(raw_data)
+    for item in lista_dados:
+        preco_formatado = None
+        if item.get('preco'):
+            preco_formatado = (
+                item['preco']
+                .replace("R$","")
+                .replace(".", "")
+                .replace(",", ".")
+                .strip()
+            )
 
-    # Limpeza simples do preço (remover R$, converter para float se possível)
-    if "preco" in df.columns:
-        df["preco"] = df["preco"].str.replace("R$", "", regex=False).str.replace(".", "", regex=False).str.replace(",", ".", regex=False)
-        df["preco"] = pd.to_numeric(df["preco"], errors="coerce")
+        dados_transformados.append({
+            "nome": item.get("nome"),
+            "preco": float(preco_formatado) if preco_formatado else None,
+            "link": item.get("link"),
+            "imagem": item.get("imagem")
+        })
 
-    return df
+    return dados_transformados

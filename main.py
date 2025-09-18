@@ -1,21 +1,21 @@
-from extract.extract import extrair_kabum
-from transform.clean import transformar_dados
+from extract.extract import extrair_dados
+from transform.transform import transformar_dados
+from load.load import carregar_dados
 
 def main():
-    termo = "notebook"
-    limite = 10
+    print("Iniciando ETL da Kabum...")
 
-    # 1) Extrair
-    raw = extrair_kabum(termo, limite)
+    # Extract
+    dados_extraidos = extrair_dados()
+    print(f"Extraídos {len(dados_extraidos)} produtos.")
 
-    # 2) Transformar
-    df = transformar_dados(raw)
+    # Transform
+    dados_transformados = transformar_dados(dados_extraidos)
+    print("Transformados:", dados_transformados[:3], "...")  # mostra só os 3 primeiros
 
-    # 3) Exportar
-    df.to_csv(f"kabum_{termo}.csv", index=False, encoding="utf-8-sig")
-    df.to_excel(f"kabum_{termo}.xlsx", index=False)
-
-    print("Arquivos gerados com sucesso!")
+    # Load
+    carregar_dados(dados_transformados)
+    print("Dados salvos em produtos.csv com sucesso!")
 
 if __name__ == "__main__":
     main()
