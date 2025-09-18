@@ -1,1 +1,1 @@
-from .clean import transformar_dados
+from .clean import transformar_lista
