@@ -1,1 +1,1 @@
-from .extract import extrair_api
+from .extract import extrair_dados
