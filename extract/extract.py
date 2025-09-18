@@ -1,39 +1,68 @@
 import requests
 from bs4 import BeautifulSoup
 
-def extrair_kabum(termo: str, limite: int = 20):
+def extrair_dados(limite: int = 20):
     """
-    Extrai produtos da KaBuM com base no termo buscado.
+    Extrai vários itens da listagem da KaBuM, com avaliação se disponível.
     Retorna lista de dicionários com dados crus.
     """
-
-    url = f"https://www.kabum.com.br/hardware/placa-de-video-vga"
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"}
+    # Categoria exemplo: placas de vídeo
+    url = "https://www.kabum.com.br/hardware/placa-de-video-vga"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+    }
 
     resp = requests.get(url, headers=headers)
-    if resp.status_code != 200:
-        raise exception (f"Erro ao acessar a página")
-    
+    resp.raise_for_status()
 
     soup = BeautifulSoup(resp.text, "html.parser")
 
-    
+    cards = soup.select("div.productCard")  # ou outro seletor de card de produto
+    resultados = []
 
-    produtos = []
+    for card in cards[:limite]:
+        # Nome
+        nome_tag = card.select_one("span.nameCard")
+        nome = nome_tag.get_text(strip=True) if nome_tag else None
 
+        # Preço
+        preco_tag = card.select_one("span.priceCard")
+        preco = preco_tag.get_text(strip=True) if preco_tag else None
 
-    cards = soup.select("div.productCard")
-    for card in cards:
-        nome = card.select_one("span.nameCard").get_text(strip=True) if card.select_one("span.nameCard") else None
-        preco = card.select_one("span.priceCard").get_text(strip=True) if card.select_one("span.priceCard") else None
-        link = "https://www.kabum.com.br" + card.a["href"] if card.a else None
-        imagem = card.img["src"] if card.img else None
+        # Link
+        link_tag = card.find("a", href=True)
+        link = "https://www.kabum.com.br" + link_tag["href"] if link_tag else None
 
-        produtos.append({
+        # Imagem
+        img_tag = card.find("img", src=True)
+        imagem = img_tag["src"] if img_tag else None
+
+        # Avaliação (nota) — se houver
+        # Tenta alguns seletores possíveis
+        avaliacao = None
+        rating_tag = card.select_one("span.reviewCard")  # exemplo de seletor que pode existir
+        if rating_tag:
+            avaliacao = rating_tag.get_text(strip=True)
+        else:
+            # procurar por outro seletor de avaliação, se existir
+            alt_tag = card.select_one(".rating-stars")  # pode variar
+            if alt_tag:
+                avaliacao = alt_tag.get_text(strip=True)
+
+        # Disponibilidade
+        text_card = card.get_text(" ", strip=True).lower()
+        if "indisponível" in text_card or "esgotado" in text_card:
+            disponibilidade = "Indisponível"
+        else:
+            disponibilidade = "Em estoque"
+
+        resultados.append({
             "nome": nome,
             "preco": preco,
             "link": link,
-            "imagem": imagem
+            "imagem": imagem,
+            "avaliacao": avaliacao,
+            "disponibilidade": disponibilidade
         })
 
-    return produtos
+    return resultados
