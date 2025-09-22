@@ -59,7 +59,7 @@ def extrair_dados(limite=200):
                 else card.find_element(By.CSS_SELECTOR, "span.nameCard").text
             )
         except:
-            nome = None
+            continue
 
         try:
             preco = (
@@ -68,7 +68,10 @@ def extrair_dados(limite=200):
                 else card.find_element(By.CSS_SELECTOR, "span.priceCard").text
             )
         except:
-            preco = None
+            continue
+
+        if not nome or not preco:
+            continue
 
         try:
             estoque = card.find_element(By.XPATH, ".//*[contains(text(),'Esgotado')]")
@@ -87,8 +90,8 @@ def extrair_dados(limite=200):
 
         # Esses campos podem ser tratados depois na transform
         produtos.append({
-            "nome": nome,
-            "preco": preco,
+            "nome": nome.strip(),
+            "preco": preco.strip(),
             "categoria": "Notebook",  # fixo por enquanto
             "avaliacao": None,
             "disponibilidade": disponibilidade,
