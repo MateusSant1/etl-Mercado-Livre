@@ -68,4 +68,4 @@ def extrair_dados(limite: int = 20):
 
 
     return resultados
-print(driver.page_source[:1000])
+print(webdriver.page_source[:1000])
