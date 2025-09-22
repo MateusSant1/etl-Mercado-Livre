@@ -66,4 +66,6 @@ def extrair_dados(limite: int = 20):
             "disponibilidade": disponibilidade
         })
 
+
     return resultados
+print(driver.page_source[:1000])
