@@ -21,7 +21,7 @@ def extrair_dados(limite=200):
     driver.get(url)
 
     wait = WebDriverWait(driver, 15)
-    time.sleep(3)  # aguarda JS inicial
+    time.sleep(3)  # aguarda carregamento do JS
 
     produtos = []
     vistos = set()  # <-- CONJUNTO PARA DEDUPE
@@ -36,7 +36,7 @@ def extrair_dados(limite=200):
         cards = []
         print("⚠ Nenhum produto encontrado com seletores fixos.")
     
-    # 2️⃣ Fallback dinâmico (opcional)
+    # 2️⃣ Fallback dinâmico
     if not cards:
         soup = BeautifulSoup(driver.page_source, "html.parser")
         dynamic_cards = []
@@ -81,10 +81,19 @@ def extrair_dados(limite=200):
         except:
             link = None
 
-        # ✅ DEDUPLICAÇÃO AQUI
-        chave = link or (nome.strip().lower(), preco.strip())
+        # ✅ DEDUPLICAÇÃO REFORÇADA
+        nome_norm = re.sub(r'\s+', ' ', nome).strip().lower()
+        preco_norm = re.sub(r'[^\d,]', '', preco).strip()
+        link_norm = (link.split('?')[0].strip().lower() if link else None)
+
+        # Se o link é confiável, usa link+preço como chave
+        if link_norm:
+            chave = (link_norm, preco_norm)
+        else:
+            chave = (nome_norm, preco_norm)
+
         if chave in vistos:
-            continue  # já coletado
+            continue
         vistos.add(chave)
 
         produtos.append({
@@ -93,7 +102,7 @@ def extrair_dados(limite=200):
             "categoria": "Notebook",
             "avaliacao": None,
             "disponibilidade": "Em estoque" if preco else "Indisponível",
-            "link": link,
+            "link": link_norm,  # já normalizado
         })
 
     driver.quit()
