@@ -15,7 +15,7 @@ def setup_driver():
     options.add_argument("--disable-gpu")
     return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
-def extrair_dados(limite=20):
+def extrair_dados(limite=200):
     url = "https://www.kabum.com.br/hardware/placa-de-video-vga"
     driver = setup_driver()
     driver.get(url)
@@ -78,6 +78,9 @@ def extrair_dados(limite=20):
             )
         except:
             link = None
+
+            if not nome or not preco:
+                continue
 
         # Esses campos podem ser tratados depois na transform
         produtos.append({
