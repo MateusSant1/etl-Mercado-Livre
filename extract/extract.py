@@ -42,7 +42,11 @@ def descobrir_selector(driver, wait):
                 imagens = div.find_elements(By.TAG_NAME, "img")
                 if imagens:
                     print("✔ Seletor dinâmico encontrado!")
-                    return div.get_attribute("class")
+                    classes = div.get_attribute("class")
+                    if classes:
+                        seletor_css = "div." + ".".join(classes.split())
+                        print(f"✔ Seletor dinâmico construído: {seletor_css}")
+                        return seletor_css
         except:
             continue
 
