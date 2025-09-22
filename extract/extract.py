@@ -16,7 +16,8 @@ def setup_driver():
     return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
 def extrair_dados(limite=200):
-    url = "https://www.kabum.com.br/busca/notebook"
+    
+    url = "https://www.kabum.com.br/busca/notebook" # ATUALIZE A SUA CATEGORIA AQUI E NO PARSER NO FINAL DO CODIGO
     driver = setup_driver()
     driver.get(url)
 
@@ -99,7 +100,7 @@ def extrair_dados(limite=200):
         produtos.append({
             "nome": nome.strip(),
             "preco": preco.strip(),
-            "categoria": "Notebook",
+            "categoria": "Notebook", # ATUALIZE CATEGORIA AQUI ALSO
             "avaliacao": None,
             "disponibilidade": "Em estoque" if preco else "Indisponível",
             "link": link_norm,  # já normalizado
