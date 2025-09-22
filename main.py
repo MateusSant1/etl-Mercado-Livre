@@ -2,7 +2,7 @@ from extract.extract import extrair_dados
 from transform.transform import transformar_lista
 
 def main():
-    raw = extrair_dados(limite=20)
+    raw = extrair_dados(limite=200)
     df = transformar_lista(raw)
     print("Transformados:")
     print(df.head())
