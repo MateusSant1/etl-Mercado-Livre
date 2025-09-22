@@ -16,7 +16,7 @@ def setup_driver():
     return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
 def extrair_dados(limite=20):
-    url = "https://www.kabum.com.br/busca/notebook"
+    url = "https://www.kabum.com.br/hardware/placa-de-video-vga"
     driver = setup_driver()
     driver.get(url)
 
@@ -83,7 +83,7 @@ def extrair_dados(limite=20):
         produtos.append({
             "nome": nome,
             "preco": preco,
-            "categoria": "Notebook",  # fixo por enquanto
+            "categoria": "Hardware",  # fixo por enquanto
             "avaliacao": None,
             "disponibilidade": "Em estoque" if preco else "Indisponível",
             "link": link,
