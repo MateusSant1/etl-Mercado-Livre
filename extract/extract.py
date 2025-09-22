@@ -71,6 +71,12 @@ def extrair_dados(limite=200):
             preco = None
 
         try:
+            estoque = card.find_element(By.XPATH, ".//*[contains(text(),'Esgotado')]")
+            disponibilidade = "INDISPONIVEL"
+        except:
+            disponibilidade = "EM ESTOQUE"
+
+        try:
             link = (
                 card.find("a")["href"]
                 if hasattr(card, "find")
@@ -88,7 +94,7 @@ def extrair_dados(limite=200):
             "preco": preco,
             "categoria": "Hardware",  # fixo por enquanto
             "avaliacao": None,
-            "disponibilidade": "Em estoque" if preco else "Indisponível",
+            "disponibilidade": disponibilidade,
             "link": link,
         })
 
