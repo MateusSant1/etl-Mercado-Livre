@@ -10,7 +10,7 @@ import time
 
 def setup_driver():
     options = webdriver.ChromeOptions()
-    options.add_argument("--headless=new")  # rodar sem abrir janela
+    options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-gpu")
     return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
@@ -24,8 +24,9 @@ def extrair_dados(limite=200):
     time.sleep(3)  # aguarda JS inicial
 
     produtos = []
+    vistos = set()  # <-- CONJUNTO PARA DEDUPE
 
-    # === 1) PRIMEIRA TENTATIVA: SELETORES FIXOS ===
+    # 1️⃣ Seletores fixos
     try:
         cards = wait.until(
             EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.productCard"))
@@ -35,23 +36,21 @@ def extrair_dados(limite=200):
         cards = []
         print("⚠ Nenhum produto encontrado com seletores fixos.")
     
-    # === 2) FALLBACK DINÂMICO ===
+    # 2️⃣ Fallback dinâmico (opcional)
     if not cards:
-        print("⚠ Tentando detectar seletor dinamicamente...")
         soup = BeautifulSoup(driver.page_source, "html.parser")
         dynamic_cards = []
         for div in soup.find_all("div"):
-            # Heurística: divs que têm preço dentro
             if div.find(string=re.compile(r"R\$")):
                 dynamic_cards.append(div)
         if dynamic_cards:
             print(f"✔ Seletor dinâmico encontrado: {len(dynamic_cards)} produtos.")
             cards = dynamic_cards
-        else:
-            print("❌ Não foi possível detectar seletor de produtos.")
-    
-    # === 3) EXTRAÇÃO DOS DADOS ===
-    for card in cards[:limite]:
+
+    # 3️⃣ Extração com dedupe
+    for card in cards:
+        if len(produtos) >= limite:
+            break
         try:
             nome = (
                 card.find("span", class_=re.compile("nameCard")).get_text(strip=True)
@@ -82,15 +81,21 @@ def extrair_dados(limite=200):
         except:
             link = None
 
-        # Esses campos podem ser tratados depois na transform
+        # ✅ DEDUPLICAÇÃO AQUI
+        chave = link or (nome.strip().lower(), preco.strip())
+        if chave in vistos:
+            continue  # já coletado
+        vistos.add(chave)
+
         produtos.append({
             "nome": nome.strip(),
             "preco": preco.strip(),
-            "categoria": "Notebook",  # fixo por enquanto
+            "categoria": "Notebook",
             "avaliacao": None,
             "disponibilidade": "Em estoque" if preco else "Indisponível",
             "link": link,
         })
 
     driver.quit()
+    print(f"Produtos únicos extraídos: {len(produtos)}")
     return produtos
