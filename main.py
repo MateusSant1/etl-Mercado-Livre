@@ -8,6 +8,7 @@ def main():
     print(df.head())
 
     # salva CSV
+    df = df.drop_duplicates(keep="first")
     df.to_csv("dados_kabum.csv", index=False, encoding="utf-8-sig")
 
 if __name__ == "__main__":
